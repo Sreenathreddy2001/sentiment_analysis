@@ -1,0 +1,15 @@
+requests
+BeautifulSoup
+SentimentIntensityAnalyzer
+TfidfVectorizer
+pandas
+pipeline
+gTTS
+Translator
+asyncio
+nest_asyncio
+scipy.io.wavfile
+cosine_similarity
+SequenceMatcher
+spacy
+scipy
