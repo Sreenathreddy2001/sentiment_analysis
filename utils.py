@@ -1,5 +1,4 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import pandas as pd
 import nltk
 import os
@@ -29,86 +28,7 @@ def initialize_nltk():
     except LookupError:
         logger.info("Downloading NLTK punkt tokenizer")
         nltk.download('punkt')
-
-def display_sentiment_chart(sentiment_distribution):
-    """
-    Displays a pie chart of sentiment distribution
-    
-    Args:
-        sentiment_distribution (dict): A dictionary of sentiment counts
-    """
-    if not sentiment_distribution:
-        st.warning("No sentiment data available.")
-        return
-    
-    # Create DataFrame for visualization
-    df = pd.DataFrame({
-        'Sentiment': list(sentiment_distribution.keys()),
-        'Count': list(sentiment_distribution.values())
-    })
-    
-    # Prepare colors for sentiment
-    colors = {'positive': 'green', 'neutral': 'gray', 'negative': 'red'}
-    color_map = [colors.get(s, 'blue') for s in df['Sentiment']]
-    
-    # Create the figure and axis
-    fig, ax = plt.subplots(figsize=(8, 5))
-    
-    # Create pie chart
-    wedges, texts, autotexts = ax.pie(
-        df['Count'], 
-        labels=df['Sentiment'],
-        autopct='%1.1f%%',
-        startangle=90,
-        colors=color_map
-    )
-    
-    # Customize text appearance
-    for text in texts:
-        text.set_fontsize(12)
-    for autotext in autotexts:
-        autotext.set_fontsize(10)
-        autotext.set_color('white')
-    
-    ax.set_title('Sentiment Distribution', fontsize=14)
-    st.pyplot(fig)
-
-def create_wordcloud(common_topics):
-    """
-    Creates a word cloud visualization from common topics
-    
-    Args:
-        common_topics (list): List of common topics
-    """
-    if not common_topics:
-        st.warning("No common topics available for visualization.")
-        return
-    
-    try:
-        from wordcloud import WordCloud
-        
-        # Create a frequency dictionary
-        topic_freq = {}
-        for topic in common_topics:
-            if topic in topic_freq:
-                topic_freq[topic] += 1
-            else:
-                topic_freq[topic] = 1
-        
-        # Generate word cloud
-        wordcloud = WordCloud(width=800, height=400, background_color='white').generate_from_frequencies(topic_freq)
-        
-        # Display the wordcloud
-        fig, ax = plt.subplots(figsize=(10, 5))
-        ax.imshow(wordcloud, interpolation='bilinear')
-        ax.axis('off')
-        st.pyplot(fig)
-    except ImportError:
-        st.warning("WordCloud package not installed. Install with 'pip install wordcloud'")
-        # Fallback to simple bar chart
-        topic_counts = pd.Series(common_topics).value_counts()
-        st.bar_chart(topic_counts)
-
+         
 def save_to_report(company, results, output_format='csv'):
     """
     Saves analysis results to a file
@@ -138,3 +58,36 @@ def save_to_report(company, results, output_format='csv'):
     except Exception as e:
         logger.error(f"Error saving report: {str(e)}")
         return None
+
+def display_sentiment_chart(sentiment_distribution):
+    """
+    Displays a pie chart of sentiment distribution using Streamlit
+    
+    Args:
+        sentiment_distribution (dict): Dictionary containing sentiment counts
+    """
+    try:
+        import plotly.express as px
+        
+        # Convert sentiment distribution to DataFrame
+        df = pd.DataFrame({
+            'Sentiment': list(sentiment_distribution.keys()),
+            'Count': list(sentiment_distribution.values())
+        })
+        
+        # Create pie chart
+        fig = px.pie(df, values='Count', names='Sentiment', 
+                    title='Sentiment Distribution',
+                    color='Sentiment',
+                    color_discrete_map={
+                        'Positive': 'green',
+                        'Negative': 'red',
+                        'Neutral': 'gray'
+                    })
+        
+        # Display the chart
+        st.plotly_chart(fig)
+        
+    except Exception as e:
+        logger.error(f"Error displaying sentiment chart: {str(e)}")
+        st.error("Failed to display sentiment chart")
